@@ -77,7 +77,7 @@ void Surface3D::setTexture(const Library::GL::Texture& newTexture)
         }
     );
     update();
-    emit hasUploadedImageChanged(hasUploadedImage());
+    PROPERTY_CHANGED(hasUploadedImage, hasUploadedImage());
 }
 
 bool Surface3D::hasUploadedImage() const

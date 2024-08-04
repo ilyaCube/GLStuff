@@ -4,6 +4,7 @@
 #include "GL/Texture.hpp"
 #include "GL/TexturePool.hpp"
 #include "GL/ContextAwareWrapper.hpp"
+#include "Macro/Qt.hpp"
 #include "Renderer.hpp"
 
 namespace Models {
@@ -21,16 +22,12 @@ public:
     static QTransform getLocalMatrix(const QRectF& rect, const QSizeF& viewport, double marginPt = 0.0);
     static QTransform getScreenMatrix(const QSizeF& viewport);
 
-    Q_PROPERTY(bool hasUploadedImage READ hasUploadedImage NOTIFY hasUploadedImageChanged);
+    READONLY_PROPERTY(hasUploadedImage, hasUploadedImage);
 
 public slots:
     void loadImageUrl(const QUrl& imageUrl);
 
-signals:
-    void hasUploadedImageChanged(bool hasUploadedImage);
-
 private:
-    QSizeF _lastViewport;
     Library::GL::Texture _texture;
     Library::GL::TexturePool _texPool8C3;
     const Library::GL::ContextAwareWrapper<SurfaceDetails::Renderer> _renderer;
