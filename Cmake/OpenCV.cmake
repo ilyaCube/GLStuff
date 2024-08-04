@@ -1,0 +1,2 @@
+find_package(OpenCV REQUIRED)
+list(APPEND LINKED_LIBRARIES ${OpenCV_LIBS})
