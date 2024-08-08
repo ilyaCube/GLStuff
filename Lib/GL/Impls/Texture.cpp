@@ -30,7 +30,9 @@ Texture::~Texture()
     QMetaObject::invokeMethod(this, [id = id]() {
         auto f = GL::functions();
         f->glDeleteTextures(1, &id);
-        if (auto status = f->glGetError()) qCritical("OpenGL error: %i in %s:%i", status, __FILE__, __LINE__);
+        if (auto status = f->glGetError()) {
+            qCritical("OpenGL error: %i in %s:%i", status, __FILE__, __LINE__);
+        }
     });
 }
 

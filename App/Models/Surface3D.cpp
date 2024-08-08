@@ -3,6 +3,7 @@
 #include <QDir>
 #include <QDebug>
 #include <QTransform>
+#include <QDateTime>
 
 #include "GL/GL.hpp"
 #include "GL/Helpers.hpp"
@@ -15,26 +16,59 @@ namespace Models {
 
 Surface3D::Surface3D(QQuickItem* parent)
     : OpenGLPaintedItem(parent),
-    _texPool8C3(Library::GL::createTexturePool(GL_RGB8))
+    _texPool8C3(Library::GL::createTexturePool(GL_RGB8)),
+    _renderer(0)
 {
+    _timer.setTimerType(Qt::TimerType::PreciseTimer);
+    _timer.setInterval(10);
+    _timer.callOnTimeout([this]{
+        QMatrix4x4 newTransform;
+        newTransform.translate(QVector3D(0.0, 0.0, -5.0));
+        newTransform.rotate((QDateTime::currentDateTime().currentMSecsSinceEpoch() / 10) % 360, QVector3D(1.0, 1.0, 1.0));
+        {
+            std::lock_guard<std::mutex> _lock(*_paintedItemMutex);
+            _modelMatrix = newTransform;
+        }
+        update();
+    });
+    _timer.start();
+
+    // Use perspective projection
+    _projection.perspective(30.0f, 1024.0f / 768.0f, 1.0f, 100);
+
+    QMatrix4x4 view1;
+    view1.translate(QVector3D(-4.0, 0.0, -8.0));
+    _viewMatrixes.append(view1);
+
+    QMatrix4x4 view2;
+    view2.translate(QVector3D(1, 0.0, -3.0));
+    _viewMatrixes.append(view2);
+
+    QMatrix4x4 view3;
+    view3.translate(QVector3D(2.0, 2, -6.0));
+    _viewMatrixes.append(view3);
 }
 
 void Surface3D::render(const QSizeF& viewport) const
 {
+    auto f = Library::GL::functions();
+    Library::GL::clearDepthBuffer();
     Library::GL::fillColorBuffer();
     if(_texture == nullptr) {
         return;
     }
 
-    float texW = _texture->width;
-    float texH = _texture->height;
-    QPolygonF poly{{QPointF(0.0, 0.0), QPointF(texW, 0.0), QPointF(texW, texH), QPointF(0.0, texH)}};
-
-    auto localMatrix = getLocalMatrix(poly.boundingRect(), viewport);
-    auto screenMatrix = getScreenMatrix(viewport);
-    auto viewMatrix = localMatrix * screenMatrix;
-
-    _renderer->render(_texture, poly, viewMatrix, GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST, GL_CLAMP_TO_BORDER);
+    for(const auto& view : _viewMatrixes) {
+        _renderer->render(
+            _texture,
+            _modelMatrix,
+            view,
+            _projection,
+            GL_LINEAR_MIPMAP_NEAREST,
+            GL_NEAREST,
+            GL_CLAMP_TO_BORDER
+        );
+    }
 
     Library::GL::functions()->glFinish();
 }
@@ -85,16 +119,19 @@ bool Surface3D::hasUploadedImage() const
     return _texture != nullptr;
 }
 
-QTransform Surface3D::getLocalMatrix(const QRectF& rect, const QSizeF& viewport, double marginPt)
+QTransform Surface3D::viewPortMatrix(const QRectF& rect, const QSizeF& viewport, double marginPt)
 {
     if (rect.isEmpty()) {
         return {};
     }
 
-    auto z = std::min((viewport.width() - 2.0 * marginPt) / rect.width(), (viewport.height() - 2.0 * marginPt) / rect.height());
+    float z = std::min((viewport.width() - 2.0 * marginPt) / rect.width(), (viewport.height() - 2.0 * marginPt) / rect.height());
     if (!std::isfinite(z)) {
         z = 1.0;
     }
+
+    float dx = -z * (0.5 * rect.width() + rect.x());
+    float dy = -z * (0.5 * rect.height() + rect.y());
 
     return {
         z, 0.0,
@@ -104,7 +141,7 @@ QTransform Surface3D::getLocalMatrix(const QRectF& rect, const QSizeF& viewport,
     };
 }
 
-QTransform Surface3D::getScreenMatrix(const QSizeF& viewport)
+QTransform Surface3D::screenMatrix(const QSizeF& viewport)
 {
     return QTransform::fromScale(2.0 / viewport.width(), -2.0 / viewport.height());
 }

@@ -10,7 +10,7 @@ OpenGLPaintedItem::OpenGLPaintedItem(QQuickItem *parent) :
     _paintedItemMutex(std::make_shared<std::mutex>())
 {
     // Assure correct OpenGL coordinates (Qml flips them by default)
-    setMirrorVertically(true);
+    // setMirrorVertically(true);
 }
 
 OpenGLPaintedItem::~OpenGLPaintedItem()
@@ -25,7 +25,9 @@ QQuickFramebufferObject::Renderer *OpenGLPaintedItem::createRenderer() const
 
 QOpenGLFramebufferObject *OpenGLPaintedItem::createFramebufferObject(const QSize& size_px) const
 {
-    return new QOpenGLFramebufferObject(size_px, QOpenGLFramebufferObjectFormat());
+    auto frameBufferObject = new QOpenGLFramebufferObject(size_px, QOpenGLFramebufferObjectFormat());
+    frameBufferObject->setAttachment(QOpenGLFramebufferObject::Depth);
+    return frameBufferObject;
 }
 
 std::weak_ptr<std::mutex> OpenGLPaintedItem::weakMutex() const

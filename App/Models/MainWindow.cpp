@@ -17,7 +17,7 @@ void MainWindow::initSurface(QObject *objSurface)
         qWarning() << "Error when surface initializing";
         return;
     }
-    surface->loadImageUrl(QUrl("file:///home/bblkycu/Pictures/appearence/volk_siluet_holmy_130119_1920x1080  Shot.jpg"));
+    surface->loadImageUrl(QUrl("file:///home/kuia/Pictures/logo2.png"));
 }
 
 }

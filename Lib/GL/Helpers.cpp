@@ -4,7 +4,13 @@
 
 namespace Library::GL {
 
-void  fillColorBuffer(const QColor& color)
+void clearDepthBuffer()
+{
+    auto f = GL::functions();
+    f->glClear(GL_DEPTH_BUFFER_BIT);
+}
+
+void fillColorBuffer(const QColor& color)
 {
     auto f = GL::functions();
     f->glClearColor(color.redF(), color.greenF(), color.blueF(), color.alphaF());
