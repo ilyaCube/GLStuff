@@ -9,7 +9,7 @@ import Models 1.0
 ApplicationWindow {
     id: mainWindow
     title: "OpenGL Tests"
-    color: "orange"
+    color: "black"
     width: 600
     height: 400
     visible: true

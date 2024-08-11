@@ -16,7 +16,6 @@ class TextureRenderer
 public:
     static constexpr int COUNT_VERTEXES = 4;
 
-
     struct Attribute
     {
         int id;
@@ -30,6 +29,7 @@ public:
 
     void render(
         const Library::GL::Texture& tex,
+        const QVector<GLfloat>& vertices,
         const QMatrix4x4& model,
         const QMatrix4x4& view,
         const QMatrix4x4& proj,
@@ -50,7 +50,7 @@ private:
 
     void uploadAttributes();
 
-    void allocVertexBuffer(const QVector<GLfloat>& vertices, const QVector<GLfloat>& texCoords) const;
+    // void allocVertexBuffer(const QVector<GLfloat>& vertices, const QVector<GLfloat>& texCoords) const;
 
     template <typename T>
     void addAttribute(const char* attribName, int size, bool isNormalize = false)

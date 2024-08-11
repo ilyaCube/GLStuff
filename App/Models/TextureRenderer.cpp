@@ -53,49 +53,6 @@ void main()
 //     QPointF(0.0f, 0.0f),
 //     QPointF(0.0f, 1.0f)
 // };
-QVector<GLfloat> vertices{
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-};
 
 // QVector<GLuint> eboData{
 //     // front
@@ -141,29 +98,14 @@ TextureRenderer::TextureRenderer(int texSlot) :
     uploadAttributes();
     _vao.release();
 
-    QVector<GLfloat> vertexAttributes(vertices.size());
-    auto j = 0;
-    for (int i = 0; i < vertices.size(); i++) {
-        // auto vertAndTex = vertices[i];
-        // auto vertex = vertAndTex.first;
-        // auto texIndex = vertAndTex.second;
-        // vertexAttributes[j++] = textureCoords[texIndex].x();
-        // vertexAttributes[j++] = textureCoords[texIndex].y();
-        // vertexAttributes[j++] = vertex.x();
-        // vertexAttributes[j++] = vertex.y();
-        // vertexAttributes[j++] = vertex.z();
-        vertexAttributes[j++] = vertices[i];
-    }
-    _vbo.allocate(vertices.data(), vertices.size() * sizeof(GLfloat));
     _vbo.release();
 
     GL_CHECK();
-
-    // Library::GL::functions()->glGenBuffers(1, GLuint *buffers)
 }
 
 void TextureRenderer::render(
     const Library::GL::Texture& texture,
+    const QVector<GLfloat>& vertices,
     const QMatrix4x4& model,
     const QMatrix4x4& view,
     const QMatrix4x4& proj,
@@ -188,14 +130,18 @@ void TextureRenderer::render(
 
     Library::GL::functions()->glEnable(GL_DEPTH_TEST);
 
+    _vbo.bind();
+    _vbo.allocate(vertices.data(), vertices.size() * sizeof(GLfloat));
+
     QOpenGLVertexArrayObject::Binder bind(&_vao);
     // _ebo.bind();
 
-    // f->glDrawElements(GL_TRIANGLES, _ebo.size(), Library::GL::GLType<GLuint>::value, reinterpret_cast<const GLvoid*>(0));
+    // tmp
     f->glDrawArrays(GL_TRIANGLES, 0, 36);
     GL_CHECK();
 
     // _ebo.release();
+    _vbo.release();
     texture->release(_texSlot);
     _glProgram.release();
 }
@@ -214,11 +160,6 @@ void TextureRenderer::uploadAttributes()
             reinterpret_cast<const GLvoid*>(attribute.offset)
         );
     }
-}
-
-void TextureRenderer::allocVertexBuffer(const QVector<GLfloat>& vertices, const QVector<GLfloat>& texCoords) const
-{
-
 }
 
 }
